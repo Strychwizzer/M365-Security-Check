@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.0.2 (2026-11-26)
+
+- „Gespeicherte Prüfung öffnen“ auf der Anmeldeseite: gespeicherte Ergebnisse ohne erneute Anmeldung ansehen, Fragebogen ergänzen und Bericht erzeugen
+- Hinweis: Eingebettete Browser (z. B. In-App-Browser) können die Microsoft-Anmeldung nach der MFA abbrechen – dann im normalen Browser anmelden
+
 ## 1.0.1 (2026-11-26)
 
 - Neue Option „Anmeldung im selben Fenster statt Pop-up“: hilft, wenn das Anmeldefenster blockiert wird oder bei der MFA-Bestätigung hängen bleibt (z. B. in eingebetteten Browsern)

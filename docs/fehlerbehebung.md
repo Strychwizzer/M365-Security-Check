@@ -11,6 +11,7 @@
 | `AADSTS50020` / `AADSTS90072` – Benutzer existiert nicht im Mandanten | falscher Mandant oder GDAP-Beziehung fehlt | Kundenmandanten auf der Anmeldeseite eintragen; GDAP-Beziehung und Rollen prüfen |
 | Anmeldefenster öffnet nicht | Pop-up-Blocker | Pop-ups für `localhost` erlauben oder auf der Anmeldeseite **„Anmeldung im selben Fenster statt Pop-up“** aktivieren |
 | Anmeldefenster hängt nach der MFA-Bestätigung bzw. der Zustimmungsdialog erscheint nicht | Pop-up erhält die Authenticator-Bestätigung nicht (z. B. in eingebetteten Browsern) | Pop-up schließen, **„Anmeldung im selben Fenster statt Pop-up“** aktivieren und erneut anmelden |
+| Anmeldung bleibt nach MFA oder „Akzeptieren“ stehen, auch ohne Pop-up | Eingebetteter Browser (In-App-Browser) bricht das Absenden der Microsoft-Anmeldeseite ab | In einem normalen Browser (Edge, Chrome, Firefox) anmelden; das Ergebnis lässt sich danach überall über „Gespeicherte Prüfung öffnen“ ansehen |
 | Viele Bereiche „Keine Berechtigung (403)“, obwohl zugestimmt wurde | Berechtigung als *Anwendungsberechtigung* statt *delegiert* eingetragen | In der App-Registrierung prüfen, dass in der Spalte *Typ* überall „Delegiert“ steht; falsche Einträge entfernen, delegiert hinzufügen, erneut zustimmen |
 
 ## Prüfung

@@ -54,7 +54,7 @@ const state = {
   scan: { rows: {} },
   q: '', cat: ALL, statusF: 'open', sourceF: ALL, sevF: ALL, refF: '', selId: null,
   qCat: ALL, normTab: 'iso',
-  snapshots: [], compareName: '', compareSnap: null, compareEv: null,
+  saved: [], snapshots: [], compareName: '', compareSnap: null, compareEv: null,
   ex: { format: 'docx', sections: new Set(X.SECTIONS.map((s) => s.key).filter((k) => k !== 'passed')), names: true, partner: lsGet('msc.partner', ''), author: lsGet('msc.author', ''), contact: lsGet('msc.contact', ''), customer: '' },
   dns: lsGet('msc.dns', '1') === '1',
   loginRedirect: lsGet('msc.loginMode', 'popup') === 'redirect',
@@ -125,7 +125,13 @@ function screenLogin() {
     '<button class="btn ms lg" data-act="login" ' + (state.busy ? 'disabled' : '') + '>' + msLogo + (acc ? 'Mit anderem Konto anmelden' : 'Mit Microsoft anmelden') + '</button>' +
     (state.error ? '<div class="err">' + state.error + '</div>' : '') +
     '<div style="display:flex;flex-wrap:wrap;gap:8px"><span class="chip">Nur Leserechte</span><span class="chip">GDAP-fähig</span><span class="chip">Daten bleiben lokal</span></div>' +
-    '</div><div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap"><button class="btn ghost" data-act="demo">Demo mit Beispieldaten</button><button class="btn ghost" data-act="openSetup">Einrichtung / Client-ID</button><button class="btn ghost" data-act="theme">' + themeLabel() + '</button></div></div></div>';
+    '</div>' + savedPanel() + '<div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap"><button class="btn ghost" data-act="demo">Demo mit Beispieldaten</button><button class="btn ghost" data-act="openSetup">Einrichtung / Client-ID</button><button class="btn ghost" data-act="theme">' + themeLabel() + '</button></div></div></div>';
+}
+
+function savedPanel() {
+  if (!state.saved.length) return '';
+  return '<div class="card" style="gap:10px;padding:20px 24px"><h2 style="font-size:15px">Gespeicherte Prüfung öffnen</h2><p class="small muted" style="margin-top:-4px">Ergebnis ansehen, Bericht erzeugen oder Fragebogen ergänzen – ohne erneute Anmeldung.</p>' +
+    state.saved.slice(0, 6).map((x) => '<div class="assign" style="align-items:center"><span style="display:flex;flex-direction:column;gap:2px;min-width:0"><b style="font-weight:500">' + esc(x.tenant || 'Mandant') + '</b><span class="small muted">' + fmtDT(x.scannedAt) + (x.score !== null && x.score !== undefined ? ' · Bewertung ' + x.score : '') + '</span></span><button class="btn" style="min-height:34px" data-act="openSaved" data-name="' + esc(x.name) + '">Öffnen</button></div>').join('') + '</div>';
 }
 
 function screenScanning() {
@@ -180,7 +186,7 @@ function screenApp() {
     '<div class="lastscan"><span class="muted">' + (state.viewingSaved ? 'Gespeicherter Stand' : 'Letzte Prüfung') + '</span><b>' + fmtDT(s.scannedAt) + '</b><span class="muted">' + ev.counts.total + ' Prüfpunkte · Score ' + (ev.score === null ? '–' : ev.score) + '</span>' +
     (!s.demo ? '<button class="btn" style="margin-top:8px;min-height:34px" data-act="rescan">' + ICON.refresh + 'Neu prüfen</button>' : '') + '</div>' +
     '</nav><main class="main" id="main"><div class="page">' +
-    (state.viewingSaved ? '<div class="banner">Ansicht eines gespeicherten Stands (' + esc(state.viewingSaved) + '). <button class="btn ghost" data-act="backToLive">Zurück zur aktuellen Prüfung</button></div>' : '') +
+    (state.viewingSaved ? '<div class="banner">Ansicht eines gespeicherten Stands (' + esc(state.viewingSaved) + '). <button class="btn ghost" data-act="backToLive">' + (state.liveSnap || state.account ? 'Zurück zur aktuellen Prüfung' : 'Zur Anmeldung') + '</button></div>' : '') +
     (views[state.view] || viewDashboard)() + '</div></main></div></div>';
 }
 
@@ -574,7 +580,18 @@ const ACTIONS = {
       state.view = 'dashboard'; render();
     } catch (e) { toast('Nicht lesbar: ' + e.message); }
   },
+  async openSaved(el) {
+    try {
+      const s = await api('/api/snapshots/' + encodeURIComponent(el.dataset.name));
+      state.snap = s; await loadNotes();
+      load(s, state.notes.answers && Object.keys(state.notes.answers).length ? state.notes : (s.notes || state.notes));
+      state.viewingSaved = fmtDT(s.scannedAt); state.liveSnap = null; clearCompare();
+      await refreshSnapshots();
+      state.screen = 'app'; state.view = 'dashboard'; render(); window.scrollTo(0, 0);
+    } catch (e) { toast('Nicht lesbar: ' + e.message); }
+  },
   async backToLive() {
+    if (!state.liveSnap && !state.account) { state.viewingSaved = null; state.snap = null; state.ev = null; clearCompare(); state.screen = 'login'; render(); return; }
     if (state.liveSnap) { state.snap = state.liveSnap; state.liveSnap = null; }
     state.viewingSaved = null; clearCompare();
     await loadNotes(); render();
@@ -670,6 +687,7 @@ document.addEventListener('keydown', (e) => {
   if (location.hash || location.search) history.replaceState(null, '', '/');
   if (rErr) { state.error = explainLoginError(rErr); state.screen = 'login'; render(); return; }
   if (auto && state.account) { await startScan(); return; }
+  try { state.saved = await api('/api/snapshots'); } catch (e) { state.saved = []; }
   state.screen = 'login';
   render();
 })();
