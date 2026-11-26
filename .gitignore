@@ -1,0 +1,7 @@
+# Lokale Daten (Konfiguration, Prüfergebnisse mit Kundendaten, Notizen) niemals einchecken
+M365SecurityCheck-Daten/
+config.json
+# Build-Ergebnisse
+/dist/
+*.exe
+M365SecurityCheck-*
