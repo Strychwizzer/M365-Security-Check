@@ -161,7 +161,7 @@ function ring(score, size, label) {
 function screenApp() {
   const s = state.snap, ev = state.ev;
   const nav = (id, icon, label, cnt, bad) => '<button class="navbtn' + (state.view === id ? ' on' : '') + '" data-act="nav" data-view="' + id + '">' + icon + label + (cnt !== undefined && cnt !== null ? '<span class="cnt' + (bad ? ' bad' : '') + '">' + cnt + '</span>' : '') + '</button>';
-  const initials = (state.account && state.account.username ? state.account.username.slice(0, 2) : (s.demo ? 'DE' : '??')).toUpperCase();
+  const initials = (state.account && state.account.username ? state.account.username.slice(0, 2) : (s.demo ? 'DE' : '–')).toUpperCase();
   const views = { dashboard: viewDashboard, findings: viewFindings, plan: viewPlan, questions: viewQuestions, norms: viewNorms, history: viewHistory, export: viewExport, log: viewLog, settings: viewSettings };
   const p1 = ev.plan.filter((r) => r.prio === 1).length;
   return '<div class="app"><header class="topbar">' +
@@ -287,7 +287,7 @@ function detail(r) {
   }
   h += '<dl class="kv">' + meta.map(([k, v]) => '<dt>' + k + '</dt><dd>' + v + '</dd>').join('') + '</dl>';
   if (r.why) h += '<div class="block"><span class="sectlabel">Warum wichtig</span><p class="small" style="color:var(--text2)">' + esc(r.why) + '</p></div>';
-  if (r.fix) h += '<div class="block"><span class="sectlabel">Empfehlung' + (r.fixLang === 'en' ? ' (Microsoft, englisch)' : '') + '</span><p class="small fix">' + esc(r.fix) + '</p></div>';
+  if (r.fix) h += '<div class="block"><span class="sectlabel">Empfehlung' + (r.fixLang === 'en' ? ' (Microsoft)' : '') + '</span><p class="small fix">' + esc(r.fix) + '</p></div>';
   if (r.ref) h += '<a class="small" href="' + esc(r.ref) + '" target="_blank" rel="noopener">Microsoft-Dokumentation ' + ICON.ext + '</a>';
   h += '<label class="field" for="note">Kommentar für den Bericht<textarea class="input" id="note" data-in="note" data-id="' + esc(r.id) + '" placeholder="Ansprechpartner, geplante Umsetzung, Ticket …">' + esc(state.notes.notes[r.id] || '') + '</textarea></label>';
   if (r.status === 'fail' || r.status === 'warn' || r.accepted) h += '<div style="display:flex;gap:8px;flex-wrap:wrap">' + (r.accepted ? '<button class="btn" data-act="unaccept" data-id="' + esc(r.id) + '">Risikoakzeptanz aufheben</button>' : '<button class="btn" data-act="accept" data-id="' + esc(r.id) + '">Risiko akzeptieren</button>') + '</div><p class="small faint">Akzeptierte Risiken zählen nicht in die Bewertung und werden im Bericht gesondert ausgewiesen.</p>';
