@@ -34,6 +34,7 @@ import (
 //go:embed web
 var webFS embed.FS
 
+// appVersion wird vom Release-Workflow gelesen: Erhöhen und auf main pushen veröffentlicht ein neues Release.
 const appVersion = "1.0.0"
 
 type Config struct {

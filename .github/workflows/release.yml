@@ -1,11 +1,15 @@
 name: Release
 
-# Zwei Wege:
-#  1. Auf GitHub: Actions → Release → „Run workflow“ (Version aus main.go wird verwendet)
-#  2. Per Tag:   git tag v1.0.0 && git push origin v1.0.0
-# In beiden Fällen wird das Release mit allen Paketen direkt veröffentlicht.
+# Drei Wege:
+#  1. Automatisch: appVersion in main.go erhöhen, CHANGELOG.md ergänzen, auf main pushen –
+#     existiert für die Version noch kein Tag, wird das Release angelegt.
+#  2. Auf GitHub: Actions → Release → „Run workflow“ (Version aus main.go wird verwendet)
+#  3. Per Tag:   git tag v1.0.0 && git push origin v1.0.0
+# Das Release wird mit allen Paketen direkt veröffentlicht.
 on:
   push:
+    branches: [main]
+    paths: ['main.go']
     tags: ['v*']
   workflow_dispatch:
 
@@ -17,19 +21,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Schon veröffentlicht?
+        id: check
+        run: |
+          VER="$(sed -n 's/^const appVersion = "\(.*\)"/\1/p' main.go)"
+          if [ "${GITHUB_REF_TYPE}" = "branch" ] && git rev-parse -q --verify "refs/tags/v$VER" >/dev/null; then
+            echo "v$VER existiert bereits – nichts zu tun."; echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-go@v5
         with:
           go-version: '1.22'
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.skip != 'true'
         with:
           node-version: '22'
       - name: Tests
+        if: steps.check.outputs.skip != 'true'
         working-directory: tests
         run: |
           node logic.test.mjs
           node scan-mock.test.mjs
           node export.test.mjs
       - name: Version ermitteln
+        if: steps.check.outputs.skip != 'true'
         id: ver
         run: |
           CODE="$(sed -n 's/^const appVersion = "\(.*\)"/\1/p' main.go)"
@@ -39,6 +57,7 @@ jobs:
           fi
           echo "version=$CODE" >> "$GITHUB_OUTPUT"
       - name: Release-Text aus CHANGELOG.md
+        if: steps.check.outputs.skip != 'true'
         run: |
           awk -v v="${{ steps.ver.outputs.version }}" '
             $0 ~ "^## " v " " { on=1; next }
@@ -49,8 +68,10 @@ jobs:
             "${{ steps.ver.outputs.version }}" "$GITHUB_REPOSITORY" >> release-notes.md
           cat release-notes.md
       - name: Bauen und packen
+        if: steps.check.outputs.skip != 'true'
         run: tools/package.sh "${{ steps.ver.outputs.version }}"
       - name: Release-Entwurf erstellen
+        if: steps.check.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.version }}
