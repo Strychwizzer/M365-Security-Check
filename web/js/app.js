@@ -57,6 +57,7 @@ const state = {
   snapshots: [], compareName: '', compareSnap: null, compareEv: null,
   ex: { format: 'docx', sections: new Set(X.SECTIONS.map((s) => s.key).filter((k) => k !== 'passed')), names: true, partner: lsGet('msc.partner', ''), author: lsGet('msc.author', ''), contact: lsGet('msc.contact', ''), customer: '' },
   dns: lsGet('msc.dns', '1') === '1',
+  loginRedirect: lsGet('msc.loginMode', 'popup') === 'redirect',
   toast: ''
 };
 
@@ -119,6 +120,7 @@ function screenLogin() {
     '<label class="field" for="loginTenant">Kundenmandant (Domain oder Tenant-ID)<input class="input mono" id="loginTenant" placeholder="contoso.onmicrosoft.com" value="' + esc(lsGet('msc.lastTenant', state.cfg.defaultTenant || '')) + '"></label>' +
     '<p class="small faint" style="margin-top:-8px">Für Partner-Zugriff (GDAP) unbedingt den Kundenmandanten angeben. Empfohlene Rolle: <b>Globaler Leser</b>.</p>' +
     '<label class="check" style="background:transparent;padding:0;min-height:0"><input type="checkbox" data-ch="dns"' + (state.dns ? ' checked' : '') + '><span class="small">Öffentliche Mail-DNS-Einträge (SPF, DKIM, DMARC) mitprüfen <span class="faint">– Abfrage der Domainnamen über Cloudflare DNS-over-HTTPS</span></span></label>' +
+    '<label class="check" style="background:transparent;padding:0;min-height:0"><input type="checkbox" data-ch="loginRedirect"' + (state.loginRedirect ? ' checked' : '') + '><span class="small">Anmeldung im selben Fenster statt Pop-up <span class="faint">– falls das Anmeldefenster blockiert wird oder hängen bleibt</span></span></label>' +
     (acc ? '<button class="btn primary lg" data-act="continue">Als ' + esc(acc.username) + ' fortfahren</button>' : '') +
     '<button class="btn ms lg" data-act="login" ' + (state.busy ? 'disabled' : '') + '>' + msLogo + (acc ? 'Mit anderem Konto anmelden' : 'Mit Microsoft anmelden') + '</button>' +
     (state.error ? '<div class="err">' + state.error + '</div>' : '') +
@@ -513,7 +515,9 @@ const ACTIONS = {
     lsSet('msc.lastTenant', tenant);
     state.error = ''; state.busy = true; render();
     try {
+      G.setLoginMode(state.loginRedirect ? 'redirect' : 'popup');
       await G.initAuth(state.cfg.clientId, tenant);
+      if (state.loginRedirect) { try { sessionStorage.setItem('msc.autoscan', '1'); } catch (e) { /* */ } }
       state.account = await G.login();
       state.busy = false;
       await startScan();
@@ -616,6 +620,7 @@ const CHANGES = {
   sourceF(el) { state.sourceF = el.value; state.selId = null; render(); },
   sevF(el) { state.sevF = el.value; state.selId = null; render(); },
   dns(el) { state.dns = el.checked; lsSet('msc.dns', el.checked ? '1' : '0'); },
+  loginRedirect(el) { state.loginRedirect = el.checked; lsSet('msc.loginMode', el.checked ? 'redirect' : 'popup'); G.setLoginMode(el.checked ? 'redirect' : 'popup'); },
   names(el) { state.ex.names = el.checked; },
   sec(el) { if (el.checked) state.ex.sections.add(el.dataset.key); else state.ex.sections.delete(el.dataset.key); render(); },
   importFile(el) {
@@ -657,7 +662,14 @@ document.addEventListener('keydown', (e) => {
   const params = new URLSearchParams(location.search);
   if (params.has('demo')) { startDemo(); if (params.get('view')) { state.view = params.get('view'); render(); } return; }
   if (!state.cfg.clientId) { state.screen = 'setup'; render(); return; }
+  G.setLoginMode(state.loginRedirect ? 'redirect' : 'popup');
+  let auto = false;
+  try { auto = sessionStorage.getItem('msc.autoscan') === '1'; sessionStorage.removeItem('msc.autoscan'); } catch (e) { /* */ }
   try { state.account = await G.initAuth(state.cfg.clientId, lsGet('msc.lastTenant', state.cfg.defaultTenant || '')); } catch (e) { state.account = null; }
+  const rErr = G.takeRedirectError();
+  if (location.hash || location.search) history.replaceState(null, '', '/');
+  if (rErr) { state.error = explainLoginError(rErr); state.screen = 'login'; render(); return; }
+  if (auto && state.account) { await startScan(); return; }
   state.screen = 'login';
   render();
 })();

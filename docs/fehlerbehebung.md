@@ -9,7 +9,9 @@
 | `AADSTS700016` – Anwendung nicht gefunden | App nicht mehrinstanzenfähig oder Client-ID falsch | Unter *Authentifizierung → Unterstützte Kontotypen* „Mehrinstanzenfähig“ wählen, Client-ID prüfen |
 | `AADSTS65001` / „Administratorgenehmigung erforderlich“ | Zustimmung im Kundenmandanten fehlt oder ist nach dem Ergänzen von Berechtigungen veraltet | Zustimmungslink verwenden (wird in der Fehlermeldung angezeigt) oder Admin des Kunden zustimmen lassen |
 | `AADSTS50020` / `AADSTS90072` – Benutzer existiert nicht im Mandanten | falscher Mandant oder GDAP-Beziehung fehlt | Kundenmandanten auf der Anmeldeseite eintragen; GDAP-Beziehung und Rollen prüfen |
-| Anmeldefenster öffnet nicht | Pop-up-Blocker | Pop-ups für `localhost` erlauben |
+| Anmeldefenster öffnet nicht | Pop-up-Blocker | Pop-ups für `localhost` erlauben oder auf der Anmeldeseite **„Anmeldung im selben Fenster statt Pop-up“** aktivieren |
+| Anmeldefenster hängt nach der MFA-Bestätigung bzw. der Zustimmungsdialog erscheint nicht | Pop-up erhält die Authenticator-Bestätigung nicht (z. B. in eingebetteten Browsern) | Pop-up schließen, **„Anmeldung im selben Fenster statt Pop-up“** aktivieren und erneut anmelden |
+| Viele Bereiche „Keine Berechtigung (403)“, obwohl zugestimmt wurde | Berechtigung als *Anwendungsberechtigung* statt *delegiert* eingetragen | In der App-Registrierung prüfen, dass in der Spalte *Typ* überall „Delegiert“ steht; falsche Einträge entfernen, delegiert hinzufügen, erneut zustimmen |
 
 ## Prüfung
 

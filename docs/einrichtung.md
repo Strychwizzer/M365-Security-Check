@@ -41,6 +41,8 @@ Ein Client-Geheimnis oder Zertifikat wird **nicht** benötigt – die App ist ei
 | `DeviceManagementManagedDevices.Read.All` | Gerätezusammenfassung (Konformität, Verschlüsselung, Check-in) |
 | `BackupRestore-Configuration.Read.All` | Status von Microsoft 365 Backup (optional) |
 
+> Wichtig: Alle Berechtigungen als **Delegierte Berechtigungen** hinzufügen, nicht als *Anwendungsberechtigungen*. In der Liste muss in der Spalte *Typ* überall „Delegiert“ stehen – sonst fehlen die Rechte bei der Anmeldung und es entsteht unnötig eine weitreichende App-Berechtigung.
+
 Alle Berechtigungen sind **nur lesend**. Das Programm fordert beim Login den Bereich `https://graph.microsoft.com/.default` an, also genau die hier eingetragenen und zugestimmten Rechte. Fehlt eine Berechtigung, läuft die Prüfung trotzdem – die betroffenen Punkte erscheinen als „nicht prüfbar“.
 
 ## 4. Client-ID eintragen

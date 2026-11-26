@@ -35,7 +35,7 @@ import (
 var webFS embed.FS
 
 // appVersion wird vom Release-Workflow gelesen: Erhöhen und auf main pushen veröffentlicht ein neues Release.
-const appVersion = "1.0.0"
+const appVersion = "1.0.1"
 
 type Config struct {
 	ClientID      string `json:"clientId"`

@@ -16,12 +16,28 @@ export async function initAuth(clientId, tenant) {
     system: { allowNativeBroker: false }
   });
   await pca.initialize();
+  // Rückkehr von einer Anmeldung per Weiterleitung (ohne Pop-up) verarbeiten
+  let redirected = null;
+  try { redirected = await pca.handleRedirectPromise(); } catch (e) { redirectError = e; }
+  if (redirected && redirected.account) { account = redirected.account; pca.setActiveAccount(account); return account; }
   const accounts = pca.getAllAccounts();
   account = accounts.length ? accounts[0] : null;
   return account;
 }
 
+let redirectError = null;
+// Fehler einer Anmeldung per Weiterleitung (einmalig abholen)
+export function takeRedirectError() { const e = redirectError; redirectError = null; return e; }
+
+// Anmeldeart: 'popup' (Standard) oder 'redirect' (im selben Fenster – hilft, wenn Pop-ups blockiert werden oder hängen)
+export let loginMode = 'popup';
+export function setLoginMode(m) { loginMode = m === 'redirect' ? 'redirect' : 'popup'; }
+
 export async function login() {
+  if (loginMode === 'redirect') {
+    await pca.loginRedirect({ scopes: SCOPES, prompt: 'select_account' });
+    return new Promise(() => {}); // Seite wird verlassen
+  }
   const res = await pca.loginPopup({ scopes: SCOPES, prompt: 'select_account' });
   account = res.account;
   pca.setActiveAccount(account);
@@ -44,6 +60,7 @@ async function token() {
     const r = await pca.acquireTokenSilent({ scopes: SCOPES, account });
     return r.accessToken;
   } catch (e) {
+    if (loginMode === 'redirect') { await pca.acquireTokenRedirect({ scopes: SCOPES, account }); return new Promise(() => {}); }
     const r = await pca.acquireTokenPopup({ scopes: SCOPES, account });
     return r.accessToken;
   }

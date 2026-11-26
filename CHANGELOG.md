@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.0.1 (2026-11-26)
+
+- Neue Option „Anmeldung im selben Fenster statt Pop-up“: hilft, wenn das Anmeldefenster blockiert wird oder bei der MFA-Bestätigung hängen bleibt (z. B. in eingebetteten Browsern)
+- Dokumentation: Hinweis, dass alle Graph-Berechtigungen als *delegiert* (nicht als Anwendungsberechtigung) eingetragen werden müssen
+
 ## 1.0.0 (2026-11-26)
 
 Erste Version.
