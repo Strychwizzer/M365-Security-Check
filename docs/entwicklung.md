@@ -54,4 +54,4 @@ python3 tools/screenshots.py
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-Der Workflow *Release* testet, baut die Pakete für Windows, macOS und Linux und legt einen Release-Entwurf mit den Notizen aus `CHANGELOG.md` an. Alternativ lokal: `tools/package.sh`.
+Der Workflow *Release* testet, baut die Pakete für Windows, macOS und Linux und veröffentlicht das Release mit den Notizen aus `CHANGELOG.md`. Alternativ lokal: `tools/package.sh`.
